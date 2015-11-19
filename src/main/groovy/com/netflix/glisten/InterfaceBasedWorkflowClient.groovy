@@ -54,6 +54,6 @@ class InterfaceBasedWorkflowClient<T> extends WorkflowClientExternalBase {
     T asWorkflow(WorkflowExecutionCreationCallback callback = new NoOpWorkflowExecutionCreationCallback(),
                         DynamicWorkflowClientExternal client = null) {
         new WorkflowClientExternalToWorkflowInterfaceAdapter(client ?: dynamicWorkflowClient, workflowInterface,
-                workflowDescriptionTemplate, workflowTags, callback) as T
+                workflowDescriptionTemplate, workflowTags, callback).asType( workflowInterface )
     }
 }

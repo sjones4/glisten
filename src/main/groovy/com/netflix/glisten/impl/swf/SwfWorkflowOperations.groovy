@@ -53,7 +53,7 @@ class SwfWorkflowOperations<A> extends WorkflowOperations<A> {
 
     @Override
     A getActivities() {
-        AsyncCaller.of(activitiesType, activitySchedulingOptions)
+        AsyncCaller.of(activitiesType, activitySchedulingOptions).asType( activitiesType )
     }
 
     @Override

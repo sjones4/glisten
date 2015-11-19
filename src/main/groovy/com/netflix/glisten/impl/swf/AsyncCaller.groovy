@@ -25,6 +25,8 @@ import com.amazonaws.services.simpleworkflow.model.ActivityType
 import com.netflix.glisten.impl.ReflectionHelper
 import groovy.transform.Canonical
 import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
 /**
  * Use this to schedule SWF activities using the methods on your activities interface.
@@ -39,7 +41,7 @@ class AsyncCaller<T> {
     static <T> T of(Class<T> type, ActivitySchedulingOptions activitySchedulingOptions,
             DynamicActivitiesClientFactory dynamicActivitiesClientFactory =
             new DynamicActivitiesClientFactory(DynamicActivitiesClientImpl)) {
-        new AsyncCaller(type, activitySchedulingOptions, dynamicActivitiesClientFactory) as T
+        new AsyncCaller(type, activitySchedulingOptions, dynamicActivitiesClientFactory).asType( type )
     }
 
     def methodMissing(String name, args) {
@@ -55,6 +57,12 @@ class AsyncCaller<T> {
         Class returnType = method.returnType
         if (method.returnType == Void.TYPE) {
             returnType = Void
+        }
+        if ( Promise.isAssignableFrom( method.returnType ) && method.genericReturnType instanceof ParameterizedType ) {
+            Type promiseType = ((ParameterizedType)method.genericReturnType).actualTypeArguments[0]
+            if ( promiseType instanceof Class ) {
+                returnType = (Class) promiseType;
+            }
         }
         List<Promise<?>> promises = args.collect { Promise.asPromise(it) }
         DynamicActivitiesClient dynamicActivitiesClient = dynamicActivitiesClientFactory.instance

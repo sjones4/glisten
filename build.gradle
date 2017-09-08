@@ -1,29 +1,30 @@
-// Establish version and status
-ext.githubProjectName = rootProject.name // Change if github project name is not the same as the root project's name
-group = "com.netflix.${githubProjectName}"
-
 buildscript {
     repositories {
-        mavenLocal()
-        mavenCentral() // maven { url 'http://jcenter.bintray.com' }
+      jcenter( )
     }
     apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
-allprojects {
-    repositories {
-        mavenLocal()
-        mavenCentral() // maven { url: 'http://jcenter.bintray.com' }
-    }
+plugins {
+    id 'groovy'
+    id 'com.jfrog.bintray' version '1.2'
+    id 'maven'
+    id 'maven-publish'
 }
 
-apply plugin: 'groovy'
+// Establish version and status
+ext.githubProjectName = rootProject.name // Change if github project name is not the same as the root project's name
+group = "com.netflix.${githubProjectName}"
+
+allprojects {
+    repositories {
+      jcenter( )
+    }
+}
 
 apply from: file('gradle/convention.gradle')
 apply from: file('gradle/maven.gradle')
 apply from: file('gradle/check.gradle')
-apply from: file('gradle/license.gradle')
-apply from: file('gradle/release.gradle')
 
 dependencies {
 	compile 'org.codehaus.groovy:groovy-all:2.0.8'
@@ -34,3 +35,37 @@ dependencies {
 	testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
 	testCompile 'cglib:cglib-nodep:2.2.2'
 }
+
+jar {
+  manifest {
+    attributes("Implementation-Title": "glisten", "Implementation-Version": version)
+  }
+}
+
+publishing {
+    publications {
+        Publication(MavenPublication) {
+            from components.java
+            groupId 'com.github.sjones4'
+            artifactId 'glisten'
+            version version
+            artifact sourcesJar
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['Publication']
+    pkg {
+        repo = 'maven'
+        name = 'com.github.sjones4:glisten'
+        desc = 'Extension of Netflix Glisten for Groovy 2.4.5 and Java 8 compatibility'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/sjones4/glisten.git'
+        websiteUrl = 'https://github.com/sjones4/glisten'
+        issueTrackerUrl = 'https://github.com/sjones4/glisten/issues'
+    }
+}
+
